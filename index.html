@@ -226,9 +226,14 @@
         <span>הצג הודעה</span>
       </div>
 
-      <div class="action-card" onclick="openTextInput('speak', 'הקראה קולית (אנגלית)', 'Text to speak...')">
+      <div class="action-card" onclick="openTextInput('speak', 'הקראה קולית', 'טקסט להקראה...')">
         <div class="icon-wrap icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></div>
         <span>הקראה קולית</span>
+      </div>
+
+      <div class="action-card" onclick="fireAction('idle')">
+        <div class="icon-wrap icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <span>זמן חוסר פעילות</span>
       </div>
 
       <div class="action-card" onclick="fireAction('clipboard_get')">
