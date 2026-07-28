@@ -101,6 +101,12 @@
   .modal-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--text-dim);}
   .modal-btn.danger{background:linear-gradient(145deg,#e13c3c,#8a0f0f);color:#fff;}
   .modal-btn.primary{background:linear-gradient(145deg,var(--accent),var(--accent-dark));color:#fff;}
+  .window-list{width:100%;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+  .window-item{
+    width:100%;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);
+    background:#111319;color:#fff;font-size:13px;text-align:right;cursor:pointer;font-family:'Rubik',sans-serif;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
 </style>
 </head>
 <body>
@@ -246,7 +252,7 @@
         <span>חלונות פתוחים</span>
       </div>
 
-      <div class="action-card" onclick="openTextInput('focus', 'הבא חלון לקדמה (שם/חלק משם)', 'chrome')">
+      <div class="action-card" onclick="openFocusWindowList()">
         <div class="icon-wrap icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></div>
         <span>הבא חלון לקדמה</span>
       </div>
@@ -323,6 +329,21 @@
     <div class="modal-row">
       <button class="modal-btn ghost" onclick="closeOverlay('textOverlay')">ביטול</button>
       <button class="modal-btn primary" onclick="sendTextInput()">שלח</button>
+    </div>
+  </div>
+</div>
+
+<!-- Focus-window pick-list — falls back to the text modal above if the
+     "windows" URL param wasn't available (e.g. a stale cached dashboard link) -->
+<div id="focusListOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-icon" style="background:#132540;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5b9dff" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+    </div>
+    <p class="modal-title">בחר חלון להביא לקדמה</p>
+    <div class="window-list" id="focusWindowList"></div>
+    <div class="modal-row">
+      <button class="modal-btn ghost" onclick="closeOverlay('focusListOverlay')">ביטול</button>
     </div>
   </div>
 </div>
@@ -407,6 +428,30 @@
 
   function closeOverlay(id) {
     document.getElementById(id).classList.remove("open");
+  }
+
+  function openFocusWindowList() {
+    let windows = [];
+    const raw = params.get("windows");
+    if (raw) {
+      try { windows = JSON.parse(raw); } catch (e) { windows = []; }
+    }
+    if (!windows.length) {
+      // Stale cached dashboard link (opened before this list existed) or
+      // genuinely no windows found — manual entry still works either way.
+      openTextInput("focus", "הבא חלון לקדמה (שם/חלק משם)", "chrome");
+      return;
+    }
+    const list = document.getElementById("focusWindowList");
+    list.innerHTML = "";
+    windows.forEach(title => {
+      const btn = document.createElement("button");
+      btn.className = "window-item";
+      btn.textContent = title;
+      btn.onclick = () => { closeOverlay("focusListOverlay"); send({action: "focus", text: title}); };
+      list.appendChild(btn);
+    });
+    document.getElementById("focusListOverlay").classList.add("open");
   }
 
   function openCloseWindow() {
