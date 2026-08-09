@@ -85,6 +85,19 @@
   .icon-gray{background:rgba(255,255,255,0.07);color:#d0d0d5;}
   .icon-claude{background:rgba(218,119,86,0.15);color:#da7756;}
 
+  .action-card{position:relative;}
+  .action-card.is-favorite::after{
+    content:"⭐";position:absolute;top:6px;left:6px;font-size:0.6rem;line-height:1;
+  }
+
+  #toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:#20242e;border:1px solid rgba(255,255,255,0.12);border-radius:12px;
+    padding:10px 16px;font-size:0.78rem;color:var(--text);opacity:0;pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;z-index:2000;max-width:85%;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
   #status-line{
     text-align:center;color:var(--text-faint);font-size:0.72rem;padding-top:6px;
   }
@@ -120,6 +133,11 @@
 </div>
 
 <main>
+
+  <section id="favorites-section" style="display:none;">
+    <h2>⭐ מועדפים</h2>
+    <div class="actions-grid" id="favorites-grid"></div>
+  </section>
 
   <section>
     <h2>🖥️ מצב המחשב (בזמן פתיחה)</h2>
@@ -391,8 +409,10 @@
     </div>
   </section>
 
-  <div id="status-line">כל פעולה תסגור את המסך ותשלח לך תשובה בצ'אט</div>
+  <div id="status-line">כל פעולה תסגור את המסך ותשלח לך תשובה בצ'אט. לחיצה ארוכה על כפתור מוסיפה/מסירה אותו מהמועדפים</div>
 </main>
+
+<div id="toast"></div>
 
 <!-- Danger modal (shutdown/restart) -->
 <div id="dangerOverlay" class="overlay">
@@ -519,6 +539,104 @@
   const sections = document.querySelectorAll(".accordion-section");
   const toOpen = [...sections].find(s => s.dataset.section === savedSection) || sections[0];
   if (toOpen) openSection(toOpen);
+
+  // ── מועדפים (לחיצה ארוכה על כל כפתור מוסיפה/מסירה, עד MAX_FAVORITES) ──
+  const MAX_FAVORITES = 5;
+  const LONG_PRESS_MS = 550;
+
+  function cardId(card) {
+    const span = card.querySelector("span");
+    return span ? span.textContent.trim() : null;
+  }
+  function getFavorites() {
+    try { return JSON.parse(localStorage.getItem("favorites") || "[]"); } catch (e) { return []; }
+  }
+  function setFavorites(arr) {
+    localStorage.setItem("favorites", JSON.stringify(arr));
+  }
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 1800);
+  }
+  function toggleFavorite(id) {
+    let favs = getFavorites();
+    if (favs.includes(id)) {
+      favs = favs.filter(f => f !== id);
+      setFavorites(favs);
+      showToast("➖ הוסר מהמועדפים");
+    } else {
+      if (favs.length >= MAX_FAVORITES) {
+        showToast(`אפשר עד ${MAX_FAVORITES} מועדפים — תסיר אחד קודם`);
+        return;
+      }
+      favs.push(id);
+      setFavorites(favs);
+      showToast("⭐ נוסף למועדפים");
+    }
+    renderFavorites();
+  }
+
+  let suppressNextClick = false;
+  document.addEventListener("click", (e) => {
+    if (suppressNextClick) {
+      e.stopPropagation();
+      e.preventDefault();
+      suppressNextClick = false;
+    }
+  }, true);
+
+  function attachLongPress(cards) {
+    cards.forEach(card => {
+      if (card.dataset.lpBound) return;
+      card.dataset.lpBound = "1";
+      let timer = null;
+      const start = () => {
+        timer = setTimeout(() => {
+          suppressNextClick = true;
+          const id = cardId(card);
+          if (id) toggleFavorite(id);
+        }, LONG_PRESS_MS);
+      };
+      const cancel = () => clearTimeout(timer);
+      card.addEventListener("pointerdown", start);
+      card.addEventListener("pointerup", cancel);
+      card.addEventListener("pointerleave", cancel);
+      card.addEventListener("pointercancel", cancel);
+    });
+  }
+
+  function renderFavorites() {
+    const favs = getFavorites();
+    const section = document.getElementById("favorites-section");
+    const grid = document.getElementById("favorites-grid");
+    grid.innerHTML = "";
+
+    document.querySelectorAll(".actions-grid:not(#favorites-grid) .action-card").forEach(card => {
+      card.classList.toggle("is-favorite", favs.includes(cardId(card)));
+    });
+
+    if (favs.length === 0) {
+      section.style.display = "none";
+      return;
+    }
+    section.style.display = "";
+    favs.forEach(id => {
+      const original = [...document.querySelectorAll(".actions-grid:not(#favorites-grid) .action-card")]
+        .find(c => cardId(c) === id);
+      if (!original) return;
+      const clone = original.cloneNode(true);
+      delete clone.dataset.lpBound;
+      clone.classList.remove("is-favorite");
+      grid.appendChild(clone);
+    });
+    attachLongPress(grid.querySelectorAll(".action-card"));
+  }
+
+  attachLongPress(document.querySelectorAll(".actions-grid:not(#favorites-grid) .action-card"));
+  renderFavorites();
 </script>
 
 </body>
