@@ -447,6 +447,10 @@
 
   function haptic(style) {
     if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(style);
+    // Fallback for clients where Telegram's own haptic bridge doesn't fire
+    // (seen on some Android builds) — the standard Vibration API works
+    // independently since it goes through the WebView directly, not Telegram.
+    if (navigator.vibrate) navigator.vibrate(style === "medium" ? 20 : 10);
   }
 
   function send(payload) {
@@ -514,6 +518,7 @@
   }
   function toggleSection(headerEl) {
     if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    if (navigator.vibrate) navigator.vibrate(8);
     const section = headerEl.closest(".accordion-section");
     const wasOpen = section.classList.contains("open");
     document.querySelectorAll(".accordion-section.open").forEach(closeSection);
