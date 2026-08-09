@@ -51,6 +51,14 @@
     color:var(--text-dim);margin-bottom:12px;
   }
 
+  .accordion-header{
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;user-select:none;
+  }
+  .accordion-header .chevron{transition:transform .25s ease;flex-shrink:0;}
+  .accordion-section.open .accordion-header .chevron{transform:rotate(180deg);}
+  .accordion-body{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+
   #status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;}
   .stat-card{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
@@ -123,8 +131,12 @@
     </div>
   </section>
 
-  <section>
-    <h2>⚙️ מערכת</h2>
+  <section class="accordion-section" data-section="system">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>⚙️ מערכת</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="fireAction('lock')">
@@ -168,10 +180,15 @@
       </div>
 
     </div>
+    </div>
   </section>
 
-  <section>
-    <h2>🔊 קול</h2>
+  <section class="accordion-section" data-section="sound">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>🔊 קול</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="openTextInput('volume_set', 'קבע עוצמת קול (0-100)', '50')">
@@ -195,10 +212,15 @@
       </div>
 
     </div>
+    </div>
   </section>
 
-  <section>
-    <h2>🎥 מדיה</h2>
+  <section class="accordion-section" data-section="media">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>🎥 מדיה</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="fireAction('screenshot')">
@@ -227,10 +249,15 @@
       </div>
 
     </div>
+    </div>
   </section>
 
-  <section>
-    <h2>🪟 חלונות</h2>
+  <section class="accordion-section" data-section="windows">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>🪟 חלונות</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="fireAction('openwindows')">
@@ -249,10 +276,15 @@
       </div>
 
     </div>
+    </div>
   </section>
 
-  <section>
-    <h2>📁 קבצים</h2>
+  <section class="accordion-section" data-section="files">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>📁 קבצים</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="fireAction('files_list')">
@@ -271,10 +303,15 @@
       </div>
 
     </div>
+    </div>
   </section>
 
-  <section>
-    <h2>🚀 אפליקציות וקישורים</h2>
+  <section class="accordion-section" data-section="apps">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>🚀 אפליקציות וקישורים</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="fireAction('spotify')">
@@ -314,10 +351,15 @@
       </div>
 
     </div>
+    </div>
   </section>
 
-  <section>
-    <h2>🛠️ כלים נוספים</h2>
+  <section class="accordion-section" data-section="tools">
+    <h2 class="accordion-header" onclick="toggleSection(this)">
+      <span>🛠️ כלים נוספים</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </h2>
+    <div class="accordion-body">
     <div class="actions-grid">
 
       <div class="action-card" onclick="fireAction('clipboard_get')">
@@ -345,6 +387,7 @@
         <span>זמן חוסר פעילות</span>
       </div>
 
+    </div>
     </div>
   </section>
 
@@ -450,6 +493,32 @@
   if (tg && tg.BackButton) {
     tg.BackButton.onClick(() => tg.close());
   }
+
+  function openSection(section) {
+    section.classList.add("open");
+    const body = section.querySelector(".accordion-body");
+    body.style.maxHeight = body.scrollHeight + "px";
+  }
+  function closeSection(section) {
+    section.classList.remove("open");
+    section.querySelector(".accordion-body").style.maxHeight = "0px";
+  }
+  function toggleSection(headerEl) {
+    const section = headerEl.closest(".accordion-section");
+    const wasOpen = section.classList.contains("open");
+    document.querySelectorAll(".accordion-section.open").forEach(closeSection);
+    if (!wasOpen) {
+      openSection(section);
+      localStorage.setItem("accordion_open_section", section.dataset.section);
+    } else {
+      localStorage.removeItem("accordion_open_section");
+    }
+  }
+
+  const savedSection = localStorage.getItem("accordion_open_section");
+  const sections = document.querySelectorAll(".accordion-section");
+  const toOpen = [...sections].find(s => s.dataset.section === savedSection) || sections[0];
+  if (toOpen) openSection(toOpen);
 </script>
 
 </body>
