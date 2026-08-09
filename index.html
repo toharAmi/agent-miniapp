@@ -445,6 +445,10 @@
   document.getElementById("stat-uptime").textContent = params.has("uptime") ? formatUptime(params.get("uptime")) : "—";
   document.getElementById("stat-ip").textContent = params.get("ip") || "—";
 
+  function haptic(style) {
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(style);
+  }
+
   function send(payload) {
     if (tg) {
       tg.sendData(JSON.stringify(payload));
@@ -455,12 +459,14 @@
   }
 
   function fireAction(action) {
+    haptic("light");
     send({action});
   }
 
   let dangerAction = "shutdown";
   const DANGER_TITLES = {shutdown: "כיבוי מחשב", restart: "הפעלה מחדש", hibernate: "תרדמה"};
   function openDanger(action) {
+    haptic("light");
     dangerAction = action;
     document.getElementById("danger-title").textContent = DANGER_TITLES[action] || action;
     document.getElementById("dangerOverlay").classList.add("open");
@@ -468,11 +474,13 @@
   function sendDanger() {
     const pass = document.getElementById("dangerPass").value;
     if (!pass) return;
+    haptic("medium");
     send({action: dangerAction, password: pass});
   }
 
   let textAction = "";
   function openTextInput(action, title, placeholder) {
+    haptic("light");
     textAction = action;
     document.getElementById("text-title").textContent = title;
     const box = document.getElementById("textInput");
@@ -483,6 +491,7 @@
   function sendTextInput() {
     const text = document.getElementById("textInput").value.trim();
     if (!text) return;
+    haptic("light");
     send({action: textAction, text});
   }
 
@@ -504,6 +513,7 @@
     section.querySelector(".accordion-body").style.maxHeight = "0px";
   }
   function toggleSection(headerEl) {
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
     const section = headerEl.closest(".accordion-section");
     const wasOpen = section.classList.contains("open");
     document.querySelectorAll(".accordion-section.open").forEach(closeSection);
